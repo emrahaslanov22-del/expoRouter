@@ -1,98 +1,121 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useProductContext } from "@/context/ProductContext";
+import { router } from "expo-router";
+import { useEffect } from "react";
+import { FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
 
 export default function HomeScreen() {
+  const { products } = useProductContext();
+
+  useEffect(() => {
+    console.log(products);
+  }, [products]);
+
+  const productDetailsHandle = (item: any) => {
+    router.push({
+      pathname: "/ProductDetailsScreen",
+      params: { id: item.id }
+    })
+  }
+
+  const addProductHandle = () => {
+    router.push({
+      pathname: "/AddProductScreen",
+    })
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <View style={styles.container}>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View style={[styles.addProductContainer, { paddingTop: StatusBar.currentHeight }]}>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={addProductHandle}
+        >
+          <Text style={styles.btnText}>Add new product</Text>
+        </TouchableOpacity>
+      </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <FlatList
+        style={styles.list}
+        data={products}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => productDetailsHandle(item)}>
+
+            <Image
+              source={item.imageUrl}
+              style={styles.image}
+            />
+
+            <Text style={styles.name}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  )
 }
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#F0F2FA",
   },
-  safeArea: {
+  list: {
+    padding: 16,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 120,
+    marginBottom: 14,
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E3E6F2",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#222B58",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  image: {
+    width: 92,
+    height: 92,
+    borderRadius: 14,
+    backgroundColor: "#F1F0FF",
+  },
+  name: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+    marginLeft: 16,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: "700",
+    color: "#202441",
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+  addProductContainer: {
+    paddingHorizontal: 16,
+    paddingTop: -12,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E3E6F2",
+    backgroundColor: "#F0F2FA",
   },
-  title: {
-    textAlign: 'center',
+  btn: {
+    minHeight: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    backgroundColor: "#5545A5",
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  btnText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  }
 });
